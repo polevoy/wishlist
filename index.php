@@ -94,7 +94,6 @@ var wish_description = <?php echo $js_res;?>;
     	</div>
     </div>
 </div>
-<a data-toggle="modal" href="#setReservation" class="btn btn-default">Добавить книгу</a>
 
 <!-- Modal window for wish info -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="false">
