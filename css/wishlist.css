@@ -1,0 +1,14 @@
+.wish-item {
+	/*font-size:20px;*/
+	font-size: 4vmin;
+}
+.wish-item.reserved {
+	text-decoration:line-through;
+}
+
+.error {
+	color: #b94a48;
+}
+input{
+   text-align:center;
+}

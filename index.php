@@ -1,3 +1,42 @@
+<?php
+  require 'functions.php';
+  $db_connector = get_mysqli();
+  $db_connector->set_charset("utf8");
+
+  if(!empty($_POST)) {
+    $query = "SELECT w_reservation FROM Wishes WHERE w_id = ".$_POST['current_wish'];
+    if ($result = $db_connector->query($query)) {
+      while ($row = $result->fetch_assoc()) {
+            if($row['w_reservation']) {
+              if($row['w_reservation']==$_POST['inputReservation']) {
+              $query = "UPDATE Wishes SET w_reservation = '' WHERE w_id = ".$_POST['current_wish'];
+                $db_connector->query($query);               
+              } 
+              else {
+                echo "Неверный номер брони, чувак";
+              }
+            } 
+            else {
+              $query = "UPDATE Wishes SET w_reservation = '".$_POST['inputReservation']."' WHERE w_id = ".$_POST['current_wish'];
+              $db_connector->query($query);     
+            }
+        }
+
+      /* free result set and _POST*/
+      $result->free();
+      header("Location: http://192.168.10.106:8888/index.php"); /* Redirect browser */
+      exit();
+  }
+
+  } 
+
+  $query = "SELECT * FROM Wishes";
+
+  $result = $db_connector->query($query); 
+
+  for ($res = array(); $tmp = $result->fetch_assoc();) $res[] = $tmp;
+  $js_res = json_encode($res);
+?>
 
 <html>
 <head>
@@ -10,80 +49,11 @@
 	<!-- Optional theme -->
 	<link rel="stylesheet" href="bootstrap/css/bootstrap-theme.min.css">
 	<link href="bootstrap/css/jumbotron-narrow.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/wishlist.css">
+  <!--  Own making-->
+
 </head>
-<style type="text/css">
-.wish-item {
-	/*font-size:20px;*/
-	font-size: 4vmin;
-}
-.wish-item.reserved {
-	text-decoration:line-through;
-}
-
-.error {
-	color: #b94a48;
-}
-input{
-   text-align:center;
-}
-</style>
-
 <body>
-<?php
-	$mysqli = new mysqli("localhost", "root", "root", "Wishlist");
-	
-	/* check connection */
-	if (mysqli_connect_errno()) {
-		printf("Connect failed: %s\n", mysqli_connect_error());
-		exit();
-	}
-
-	$mysqli->set_charset("utf8");
-	$query = "SET CHARSET utf-8";
-
-	if(!empty($_GET)) {
-		$query = "SELECT w_reservation FROM Wishes WHERE w_id = ".$_GET['current_wish']; //." AND w_reservation = '".$_GET['inputReservation']."'";
-		if ($result = $mysqli->query($query)) {
-			while ($row = $result->fetch_assoc()) {
-        		if($row['w_reservation']) {
-        			if($row['w_reservation']==$_GET['inputReservation']) {
-         			$query = "UPDATE Wishes SET w_reservation = '' WHERE w_id = ".$_GET['current_wish'];
-        				$mysqli->query($query);       				
-        			} 
-        			else {
-        				echo "Неверный номер брони, чувак";
-        			}
-        		} 
-        		else {
-        			$query = "UPDATE Wishes SET w_reservation = '".$_GET['inputReservation']."' WHERE w_id = ".$_GET['current_wish'];
-        			$mysqli->query($query);     
-        		}
-        	/*
-        	if($row['count'] == 0) {
-        		$query = "UPDATE Wishes SET w_reservation = '".$_GET['inputReservation']."' WHERE w_id = ".$_GET['current_wish'];
-        		$result = $mysqli->query($query);
-        	}         */
-    		}
-
-    	/* free result set */
-    	$_GET= array();
-    	$result->free();
-	}
-
-	} 
-
-	$query = "SELECT * FROM Wishes";
-
-	$result = $mysqli->query($query); 
-
-	for ($res = array(); $tmp = $result->fetch_assoc();) $res[] = $tmp;
-	$js_res = json_encode($res);
-?>
-<script type="text/javascript">
-var wish_description = <?php echo $js_res;?>;
-        //console.log(json[0]);
-</script>
-
 <div class="container">	
 	<div class="row">
 		<div id ="wish-container" class="col-sm-offset-1 col-sm-10">
@@ -140,7 +110,7 @@ var wish_description = <?php echo $js_res;?>;
     	<p>Чтобы застолбить подарок, вам придется выдумать и ввести номер брони.</p>
     	<p>А чтобы, не дай Бог, отменить вашу бронь вам потребуется еще и вспомнить выдуманный вами номер.</p>
     	<p>Ничего не поделаешь, мир жесток.</p> 
-    	<form role="form" id="test">
+    	<form role="form" id="test" method="POST">
 			<div class="form-group text-center row"><div class="col-sm-offset-3 col-sm-6">
 				<label for="inputReservation">Номер брони</label>
 				<input type="text" class="form-control" id="inputReservation" name="inputReservation" placeholder="К примеру: Ааргх!" minlength="2" maxlength="10" required>
@@ -167,6 +137,7 @@ var wish_description = <?php echo $js_res;?>;
 <script src="https://code.jquery.com/jquery.js"></script>
 <!-- Latest compiled and minified JavaScript -->
 <script src="bootstrap/js/bootstrap.min.js"></script>
+<!-- Validation plugin -->
 <script src="jquery.validate.min.js"></script>
 <script type="text/javascript">
 // iOS check...ugly but necessary
@@ -227,7 +198,8 @@ jQuery.extend(jQuery.validator.messages, {
     min: jQuery.validator.format("Please enter a value greater than or equal to {0}.")
 });
 
-
+//Get wishlist from MySql
+var wish_description = <?php echo $js_res;?>;
 
 	$(document).ready(function() {
     	if(wish_description) {
